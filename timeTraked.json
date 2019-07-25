@@ -1,1 +1,13 @@
-{"currentSession":1,"prevSession":348,"totalTime":351,"projectName":"vstimetracker","languageTime":{"typescript":251,"json":68,"ignore":5,"markdown":7,"bat":5}}
+{
+    "currentSession":1,
+    "prevSession":348,
+    "totalTime":351,
+    "projectName":"vstimetracker",
+    "languageTime":{
+        "typescript":251,
+        "json":68,
+        "ignore":5,
+        "markdown":7,
+        "bat":5
+    }
+}

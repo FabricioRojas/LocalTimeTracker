@@ -305,82 +305,62 @@ function getWebviewContent(jsonTime: any, timeProjects: any, canvasJS: any) {
   <body>
 	  <h1 style="display:none;">Current session time: `+ secondsToReadableTime(jsonTime.currentSession) + `</h1>
 	  <h1>Previous session time: `+ secondsToReadableTime(jsonTime.prevSession) + `</h1>
-	  <h1>Total time: `+ secondsToReadableTime(jsonTime.totalTime) + `</h1>
+	  <h1>Current project total time: `+ secondsToReadableTime(jsonTime.totalTime) + `</h1>
+	  <h1>Total time: `+ getTotalTime(timeProjects.dates) + `</h1>
 	  <ul id="lang-list" style="display:none;">
 		  `+ languagesList(jsonTime.languageTime) + `
 	  </ul>
 	  <!--<div id="chartContainer" style="height: 370px; width: 100%;"></div>-->
-	  <canvas id="languagesChart"></canvas>
-	  <canvas id="projectsChart"></canvas>
+	  <div class="canvas-div">
+	  	  <canvas id="languagesChart" style="width:40%; height:auto"></canvas>
+		  <canvas id="projectsChart" style="width:40%; height:auto"></canvas>
+	  </div>	  
 	  <script src="${canvasJS}"></script>
 	  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
 	  <script>
-	  var dataPoints = `+ pieData(jsonTime.languageTime)+ `;
-	  var dataPointsL = `+ pieDataL(timeProjects.dates)+ `;
-	  window.onload = function() {
-		var ctx = document.getElementById('languagesChart').getContext('2d');
-		var chart = new Chart(ctx, {
-			type: 'pie',
-			data: dataPoints,
-			options: {
-				tooltips: {
-					callbacks: {
-						label: function(tooltipItem, data) {
-                            var label = data.labels[tooltipItem.index] || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            label += data.labelsValue[tooltipItem.index];
-                            return label;
-                        }
+		var dataPoints = `+ pieData(jsonTime.languageTime)+ `;
+		var dataPointsL = `+ pieDataL(timeProjects.dates)+ `;
+		window.onload = function() {
+			var ctx = document.getElementById('languagesChart').getContext('2d');
+			var chart = new Chart(ctx, {
+				type: 'pie',
+				data: dataPoints,
+				options: {
+					tooltips: {
+						callbacks: {
+							label: function(tooltipItem, data) {
+								var label = data.labels[tooltipItem.index] || '';
+								if (label) {
+									label += ': ';
+								}
+								label += data.labelsValue[tooltipItem.index];
+								return label;
+							}
+						}
 					}
 				}
-			}
-		});
-
-		var ctxL = document.getElementById('projectsChart').getContext('2d');
-		var chartL = new Chart(ctx, {
-			type: 'pie',
-			data: dataPointsL,
-			options: {
-				tooltips: {
-					callbacks: {
-						label: function(tooltipItem, data) {
-                            var label = data.labels[tooltipItem.index] || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            label += data.labelsValue[tooltipItem.index];
-                            return label;
-                        }
-					}
-				}
-			}
-		});
-
-		/*if(document.getElementById("chartContainer").innerHTML == ''){
-
-
-			var chart = new CanvasJS.Chart("chartContainer", {
-				theme: "dark2",
-				animationEnabled: false,
-				title: {
-					text: "Time spent on each language"
-				},
-				data: [{
-					type: "pie",
-					startAngle: 240,
-					yValueFormatString: "##0.00\"%\"",
-					indexLabel: "{label} {h}",
-					dataPoints: dataPoints
-				}]
 			});
 
-			chart.render();
-		}*/
-		
-	}
-
+			var ctxL = document.getElementById('projectsChart').getContext('2d');
+			var chartL = new Chart(ctxL, {
+				type: 'pie',
+				data: dataPointsL,
+				options: {
+					tooltips: {
+						callbacks: {
+							label: function(tooltipItem, data) {
+								var label = data.labels[tooltipItem.index] || '';
+								if (label) {
+									label += ': ';
+								}
+								label += data.labelsValue[tooltipItem.index];
+								return label;
+							}
+						}
+					}
+				}
+			});		
+		}
 		window.addEventListener('message', event => {
 
             const message = event.data;
@@ -408,7 +388,6 @@ function pieData(time:any){
 	let backgroundColor = [];
 	let borderColor = [];
 	for(var i in time){
-		// dataPoints.push({y: time[i], label: i, h: secondsToReadableTime(time[i])});
 		data.push(time[i]);
 		labels.push(i);
 		labelsValue.push(secondsToReadableTime(time[i]));
@@ -422,7 +401,9 @@ function pieData(time:any){
 			borderColor: borderColor
 		}], 
 		labels: labels,
-		labelsValue: labelsValue};
+		labelsValue: labelsValue
+	};
+
 	return JSON.stringify(dataPoints);
 }
 function pieDataL(dates:any){
@@ -431,26 +412,36 @@ function pieDataL(dates:any){
 	let labelsValue = [];
 	let backgroundColor = [];
 	let borderColor = [];
+
+	let globalLangTime = <any>{};
 	for(var j in dates){
-		for(var i in dates.projectName){
-			// dataPoints.push({y: time[i], label: i, h: secondsToReadableTime(time[i])});
-			data.push(time[i]);
-			labels.push(i);
-			labelsValue.push(secondsToReadableTime(time[i]));
-			backgroundColor.push(random_rgba());
-			borderColor.push('transparent');
+		let currentLog = dates[j];
+		for(var i in currentLog.languageTime){
+			let time = currentLog.languageTime[i];
+			if (globalLangTime[i] === 'undefined') { globalLangTime[i] += time; }
+			else { globalLangTime[i] = time; }
 		}
 	}
-	
-	let dataPoints = {
+
+	for(var x in globalLangTime){
+		data.push(globalLangTime[x]);
+		labels.push(x);
+		labelsValue.push(secondsToReadableTime(globalLangTime[x]));
+		backgroundColor.push(random_rgba());
+		borderColor.push('transparent');
+	}
+
+	let dataPointsL = {
 		datasets: [{
 			data: data,
 			backgroundColor: backgroundColor,
 			borderColor: borderColor
 		}], 
-		labels: labels,
-		labelsValue: labelsValue};
-	return JSON.stringify(dataPoints);
+		labels: Object.keys(globalLangTime),
+		labelsValue: labelsValue
+	};
+
+	return JSON.stringify(dataPointsL);
 }
 
 function languagesList(languageTime:any){
@@ -461,13 +452,29 @@ function languagesList(languageTime:any){
 	return listContent;
 }
 
+function getTotalTime(timeProjects:any){
+	let totalTime = 0;
+	for(var j in timeProjects){
+		let currentLog = timeProjects[j];
+		for(var i in currentLog.languageTime){
+			let time = currentLog.languageTime[i];
+			totalTime+=time;
+		}
+	}
+	return secondsToReadableTime(totalTime);
+}
+
 export function deactivate() {
 	console.log("deactivate");
 }
 
 class VSTimeTrckerSerializer implements vscode.WebviewPanelSerializer {
 	async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
-		let jsonTime = JSON.parse(fs.readFileSync(vscode.workspace.rootPath + "/timeTraked.json", 'utf8'));
-		webviewPanel.webview.html = getWebviewContent(jsonTime, "");
+		// const onDiskPath = vscode.Uri.file(
+		// 	path.join(vscode.extensionPath, 'src', 'canvasjs.min.js')
+		//   );
+		// const canvasJS = onDiskPath.with({ scheme: 'vscode-resource' });
+		// let jsonTime = JSON.parse(fs.readFileSync(vscode.workspace.rootPath + "/timeTraked.json", 'utf8'));
+		// webviewPanel.webview.html = getWebviewContent(jsonTime, "",canvasJS);
 	}
 }
