@@ -26,10 +26,16 @@ export function activate(context: vscode.ExtensionContext) {
 	}
 
 	let filePath = '/timeTraked.json';
+	let filePathL = '/timeTrakedL.json';
 	let projectName = vscode.workspace.name;
 	let currentPanel: vscode.WebviewPanel | undefined = undefined;
 	let timerInterval: NodeJS.Timeout;
 	let seconds = 0;
+	let currentDate = new Date();
+	let dd = currentDate.getDate() > 9 ? currentDate.getDate(): '0'+currentDate.getDate();
+	let mm = (currentDate.getMonth()+1) > 9 ? (currentDate.getMonth()+1) : '0'+(currentDate.getMonth()+1);
+	let yyyy = currentDate.getFullYear();
+	let fullCurrentDate = dd+"-"+mm+"-"+yyyy;
 
 	const timer = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 	initItem(timer, "VSTT $(clock)", "View stats", "extension.getTime");
@@ -37,30 +43,9 @@ export function activate(context: vscode.ExtensionContext) {
 	const pause = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 0);
 	initItem(pause, "ll", "Pause/Start timer", "extension.updateStatusTimer");
 
-	try {
-		if (fs.existsSync(vscode.workspace.rootPath + filePath)) {
-			let jsonTime = JSON.parse(fs.readFileSync(vscode.workspace.rootPath + filePath, 'utf8'));
-			if (jsonTime.currentSession > 0) {
-				fs.writeFileSync(vscode.workspace.rootPath + filePath, JSON.stringify({
-					currentSession: 0,
-					prevSession: jsonTime.currentSession,
-					totalTime: jsonTime.totalTime + jsonTime.prevSession,
-					projectName: projectName,
-					languageTime: jsonTime.languageTime
-				}));
-			}
-		} else {
-			fs.writeFileSync(vscode.workspace.rootPath + filePath, JSON.stringify({
-				currentSession: 0,
-				prevSession: 0,
-				totalTime: 0,
-				projectName: projectName,
-				languageTime: {}
-			}));
-		}
-	} catch (err) {
-		vscode.window.showInformationMessage("Couldn't start timer");
-	}
+	// context.extensionPath+'/src/cat.gif'+filePath
+	initFileL(filePathL, projectName,context,fullCurrentDate);
+	initFile(filePath, projectName,context,fullCurrentDate);
 
 	let initTimer = vscode.commands.registerCommand('extension.initTimer', () => {
 		vscode.window.showInformationMessage('Timer started!');
@@ -76,14 +61,31 @@ export function activate(context: vscode.ExtensionContext) {
 					languageTime[currentLang] = 1;
 				}
 			}
+
+			let timeProjects = JSON.parse(fs.readFileSync(context.extensionPath+filePathL, 'utf8'));
+			let dates = timeProjects.dates;
 			
-			fs.writeFileSync(vscode.workspace.rootPath + filePath, JSON.stringify({
-				currentSession: seconds,
-				prevSession: jsonTime.prevSession,
-				totalTime: jsonTime.totalTime + 1,
-				projectName: projectName,
-				languageTime: languageTime
-			}));
+			let newDay = true;
+			for(var i in dates){
+				if(dates[i].projectName === projectName){
+					if(dates[i].date === fullCurrentDate){
+						newDay = false;
+						dates[i].languageTime = languageTime;
+						break;
+					}
+				}
+			}
+			if(newDay){
+				dates.push({
+					date:fullCurrentDate,
+					projectName: projectName,
+					languageTime: languageTime
+				});
+			}
+
+			saveFileL(filePathL,projectName,context,dates);
+			saveFile(filePath,projectName,context,seconds,jsonTime,languageTime);
+
 			seconds++;
 			if (seconds % 1800 === 0) {
 				vscode.window.showInformationMessage('You should take a break!', 'Break!').then(() => {
@@ -120,11 +122,12 @@ export function activate(context: vscode.ExtensionContext) {
 				path.join(context.extensionPath, 'src', 'canvasjs.min.js')
 			  );
 			const canvasJS = onDiskPath.with({ scheme: 'vscode-resource' });
+			
 
 			const updateWebview = () => {
 				let jsonTime = JSON.parse(fs.readFileSync(vscode.workspace.rootPath + filePath, 'utf8'));
-				
-				panel.webview.html = getWebviewContent(jsonTime, canvasJS);
+				let timeProjects = JSON.parse(fs.readFileSync(context.extensionPath+filePathL, 'utf8'));
+				panel.webview.html = getWebviewContent(jsonTime, timeProjects, canvasJS);
 			};
 			updateWebview();
 		    //const interval = setInterval(updateWebview, 1000);
@@ -200,6 +203,69 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(clearStats);
 }
 
+function initFile(filePath:any,projectName:any,context:any,fullCurrentDate:String){
+	try {
+		if (fs.existsSync(vscode.workspace.rootPath + filePath)) {
+			let jsonTime = JSON.parse(fs.readFileSync(vscode.workspace.rootPath + filePath, 'utf8'));
+			if (jsonTime.currentSession > 0) {
+				fs.writeFileSync(vscode.workspace.rootPath + filePath, JSON.stringify({
+					currentSession: 0,
+					prevSession: jsonTime.currentSession,
+					totalTime: jsonTime.totalTime + jsonTime.prevSession,
+					projectName: projectName,
+					languageTime: jsonTime.languageTime
+				}));
+			}
+		} else {
+			fs.writeFileSync(vscode.workspace.rootPath + filePath, JSON.stringify({
+				currentSession: 0,
+				prevSession: 0,
+				totalTime: 0,
+				projectName: projectName,
+				languageTime: {}
+			}));
+		}
+	} catch (err) {
+		vscode.window.showInformationMessage("Couldn't start timer");
+	}
+}
+
+function initFileL(filePathL:any,projectName:any,context:any,fullCurrentDate:String){
+	try {
+		if (!fs.existsSync(context.extensionPath+filePathL)) {
+			fs.writeFileSync(context.extensionPath+filePathL, JSON.stringify({
+				dates: [{
+					date:fullCurrentDate,
+					projectName: projectName,
+					languageTime: {}
+				}],
+			}));
+		}
+	} catch (err) {
+		vscode.window.showInformationMessage("Couldn't start timer");
+	}
+}
+
+function saveFile(filePath:any,projectName:any,context:any,seconds:any,jsonTime:any,languageTime:any){
+	try{
+		fs.writeFileSync(vscode.workspace.rootPath + filePath, JSON.stringify({
+			currentSession: seconds,
+			prevSession: jsonTime.prevSession,
+			totalTime: jsonTime.totalTime + 1,
+			projectName: projectName,
+			languageTime: languageTime
+		}));
+	}catch(err){}	
+}
+
+function saveFileL(filePathL:any,projectName:any,context:any,dates:any){
+	try{	
+		fs.writeFileSync(context.extensionPath+filePathL, JSON.stringify({
+			dates: dates
+		}));
+	}catch(err){}
+}
+
 function secondsToReadableTime(secs: any) {
 	secs = Math.round(secs);
 	var hours = Math.floor(secs / (60 * 60));
@@ -227,7 +293,7 @@ function initItem(item: any, text: String, tooltip: String, command: String) {
 	item.show();
 }
 
-function getWebviewContent(jsonTime: any, canvasJS: any) {	
+function getWebviewContent(jsonTime: any, timeProjects: any, canvasJS: any) {	
 	return `<!DOCTYPE html>
   <html lang="en">
   <head>
@@ -245,10 +311,12 @@ function getWebviewContent(jsonTime: any, canvasJS: any) {
 	  </ul>
 	  <!--<div id="chartContainer" style="height: 370px; width: 100%;"></div>-->
 	  <canvas id="languagesChart"></canvas>
+	  <canvas id="projectsChart"></canvas>
 	  <script src="${canvasJS}"></script>
 	  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
 	  <script>
 	  var dataPoints = `+ pieData(jsonTime.languageTime)+ `;
+	  var dataPointsL = `+ pieDataL(timeProjects.dates)+ `;
 	  window.onload = function() {
 		var ctx = document.getElementById('languagesChart').getContext('2d');
 		var chart = new Chart(ctx, {
@@ -269,6 +337,27 @@ function getWebviewContent(jsonTime: any, canvasJS: any) {
 				}
 			}
 		});
+
+		var ctxL = document.getElementById('projectsChart').getContext('2d');
+		var chartL = new Chart(ctx, {
+			type: 'pie',
+			data: dataPointsL,
+			options: {
+				tooltips: {
+					callbacks: {
+						label: function(tooltipItem, data) {
+                            var label = data.labels[tooltipItem.index] || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += data.labelsValue[tooltipItem.index];
+                            return label;
+                        }
+					}
+				}
+			}
+		});
+
 		/*if(document.getElementById("chartContainer").innerHTML == ''){
 
 
@@ -326,6 +415,33 @@ function pieData(time:any){
 		backgroundColor.push(random_rgba());
 		borderColor.push('transparent');
 	}
+	let dataPoints = {
+		datasets: [{
+			data: data,
+			backgroundColor: backgroundColor,
+			borderColor: borderColor
+		}], 
+		labels: labels,
+		labelsValue: labelsValue};
+	return JSON.stringify(dataPoints);
+}
+function pieDataL(dates:any){
+	let data = [];
+	let labels = [];
+	let labelsValue = [];
+	let backgroundColor = [];
+	let borderColor = [];
+	for(var j in dates){
+		for(var i in dates.projectName){
+			// dataPoints.push({y: time[i], label: i, h: secondsToReadableTime(time[i])});
+			data.push(time[i]);
+			labels.push(i);
+			labelsValue.push(secondsToReadableTime(time[i]));
+			backgroundColor.push(random_rgba());
+			borderColor.push('transparent');
+		}
+	}
+	
 	let dataPoints = {
 		datasets: [{
 			data: data,
