@@ -119,7 +119,7 @@ export function activate(context: vscode.ExtensionContext) {
 			currentPanel = panel;
 
 			const onDiskPath = vscode.Uri.file(
-				path.join(context.extensionPath, 'src', 'canvasjs.min.js')
+				path.join(context.extensionPath, 'src', 'Chart.bundle.min.js')
 			  );
 			const canvasJS = onDiskPath.with({ scheme: 'vscode-resource' });
 			
@@ -303,21 +303,22 @@ function getWebviewContent(jsonTime: any, timeProjects: any, canvasJS: any) {
 	  <title>`+ jsonTime.projectName + `</title>
   </head>
   <body>
-	  <h1 style="display:none;">Current session time: `+ secondsToReadableTime(jsonTime.currentSession) + `</h1>
-	  <h1>Previous session time: `+ secondsToReadableTime(jsonTime.prevSession) + `</h1>
-	  <h1>Current project total time: `+ secondsToReadableTime(jsonTime.totalTime) + `</h1>
-	  <h1>Total time: `+ getTotalTime(timeProjects.dates) + `</h1>
-	  <ul id="lang-list" style="display:none;">
-		  `+ languagesList(jsonTime.languageTime) + `
-	  </ul>
-	  <!--<div id="chartContainer" style="height: 370px; width: 100%;"></div>-->
-	  <div class="canvas-div">
-	  	  <canvas id="languagesChart" style="width:40%; height:auto"></canvas>
-		  <canvas id="projectsChart" style="width:40%; height:auto"></canvas>
-	  </div>	  
-	  <script src="${canvasJS}"></script>
-	  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
-	  <script>
+	  	<h1 style="display:none;">Current session time: `+ secondsToReadableTime(jsonTime.currentSession) + `</h1>
+	  	<h1>Previous session time: `+ secondsToReadableTime(jsonTime.prevSession) + `</h1>
+	  	<ul id="lang-list" style="display:none;">
+		  	`+ languagesList(jsonTime.languageTime) + `
+	  	</ul>
+	  	<!--<div id="chartContainer" style="height: 370px; width: 100%;"></div>-->
+	  	<div class="canvas-div">
+	  		<h1>Current project total time: `+ secondsToReadableTime(jsonTime.totalTime) + `</h1>
+			<canvas id="languagesChart"></canvas>
+		</div>
+		<div class="canvas-div">
+			<h1>Total time: `+ getTotalTime(timeProjects.dates) + `</h1>
+		  	<canvas id="projectsChart"></canvas>
+	  	</div>	  
+		<script src="${canvasJS}"></script>
+		<script>
 		var dataPoints = `+ pieData(jsonTime.languageTime)+ `;
 		var dataPointsL = `+ pieDataL(timeProjects.dates)+ `;
 		window.onload = function() {
@@ -337,9 +338,12 @@ function getWebviewContent(jsonTime: any, timeProjects: any, canvasJS: any) {
 								return label;
 							}
 						}
-					}
+					},
 				}
 			});
+			
+			chart.canvas.parentNode.style.width = '49%';
+			chart.canvas.parentNode.style.float = 'left';
 
 			var ctxL = document.getElementById('projectsChart').getContext('2d');
 			var chartL = new Chart(ctxL, {
@@ -359,7 +363,10 @@ function getWebviewContent(jsonTime: any, timeProjects: any, canvasJS: any) {
 						}
 					}
 				}
-			});		
+			});
+			
+			chartL.canvas.parentNode.style.width = '49%';
+			chartL.canvas.parentNode.style.float = 'right';
 		}
 		window.addEventListener('message', event => {
 
