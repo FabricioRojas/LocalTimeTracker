@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 let fs = require("fs");
 let currentLang = '';
+let colors:any;
 
 export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.executeCommand("extension.initTimer");
@@ -27,6 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let filePath = '/timeTraked.json';
 	let filePathL = '/timeTrakedL.json';
+	let colorPath = context.extensionPath + '/src/colors.json';
 	let projectName = vscode.workspace.name;
 	let currentPanel: vscode.WebviewPanel | undefined = undefined;
 	let timerInterval: NodeJS.Timeout;
@@ -36,6 +38,8 @@ export function activate(context: vscode.ExtensionContext) {
 	let mm = (currentDate.getMonth()+1) > 9 ? (currentDate.getMonth()+1) : '0'+(currentDate.getMonth()+1);
 	let yyyy = currentDate.getFullYear();
 	let fullCurrentDate = dd+"-"+mm+"-"+yyyy;
+	colors = JSON.parse(fs.readFileSync(colorPath, 'utf8'));
+	// vscode.workspace.rootPath
 
 	const timer = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 	initItem(timer, "VSTT $(clock)", "View stats", "extension.getTime");
@@ -52,7 +56,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		timerInterval = setInterval(() => {
 			timer.text = "VSTT $(clock) " + secondsToReadableTime(seconds);
-			let jsonTime = JSON.parse(fs.readFileSync(vscode.workspace.rootPath + filePath, 'utf8'));
+			let jsonTime = JSON.parse(fs.readFileSync(context.extensionPath + filePath, 'utf8'));
 			let languageTime = jsonTime.languageTime;
 			if (currentLang !== '') {
 				if (languageTime[currentLang]) {
@@ -96,9 +100,10 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	let getTime = vscode.commands.registerCommand('extension.getTime', () => {
-		// let jsonTime = JSON.parse(fs.readFileSync(vscode.workspace.rootPath + filePath, 'utf8'));
+		// let jsonTime = JSON.parse(fs.readFileSync(context.extensionPath + filePath, 'utf8'));
 		// vscode.window.showInformationMessage('Time logged: ' + secondsToReadableTime(jsonTime.totalTime));
 
+		colors = JSON.parse(fs.readFileSync(colorPath, 'utf8'));
 		const columnToShowIn = vscode.window.activeTextEditor
 			? vscode.window.activeTextEditor.viewColumn
 			: undefined;
@@ -125,7 +130,7 @@ export function activate(context: vscode.ExtensionContext) {
 			
 
 			const updateWebview = () => {
-				let jsonTime = JSON.parse(fs.readFileSync(vscode.workspace.rootPath + filePath, 'utf8'));
+				let jsonTime = JSON.parse(fs.readFileSync(context.extensionPath + filePath, 'utf8'));
 				let timeProjects = JSON.parse(fs.readFileSync(context.extensionPath+filePathL, 'utf8'));
 				panel.webview.html = getWebviewContent(jsonTime, timeProjects, canvasJS);
 			};
@@ -144,7 +149,7 @@ export function activate(context: vscode.ExtensionContext) {
 			// 	panel.webview.onDidReceiveMessage(
 			// 		message => {
 
-			// 			fs.writeFile(vscode.workspace.rootPath + filePath, JSON.stringify(message), () => {
+			// 			fs.writeFile(context.extensionPath + filePath, JSON.stringify(message), () => {
 			// 				// console.log("The file was saved!");
 			// 			});
 			// 			switch (message.command) {
@@ -166,14 +171,14 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.showInformationMessage('Timer paused!');
 			pause.text = "$(triangle-right)";
 			clearInterval(timerInterval);
-			let jsonTime = JSON.parse(fs.readFileSync(vscode.workspace.rootPath + filePath, 'utf8'));
+			let jsonTime = JSON.parse(fs.readFileSync(context.extensionPath + filePath, 'utf8'));
 			seconds = jsonTime.currentSession + 1;
 		} else {
 			pause.text = "ll";
 			vscode.commands.executeCommand("extension.initTimer");
 			timer.text = "VSTT $(clock) " + secondsToReadableTime(seconds);
-			let jsonTime = JSON.parse(fs.readFileSync(vscode.workspace.rootPath + filePath, 'utf8'));
-			fs.writeFileSync(vscode.workspace.rootPath + filePath, JSON.stringify({
+			let jsonTime = JSON.parse(fs.readFileSync(context.extensionPath + filePath, 'utf8'));
+			fs.writeFileSync(context.extensionPath + filePath, JSON.stringify({
 				currentSession: seconds,
 				prevSession: jsonTime.prevSession,
 				totalTime: jsonTime.totalTime + 1,
@@ -188,7 +193,7 @@ export function activate(context: vscode.ExtensionContext) {
 		clearInterval(timerInterval);
 		vscode.commands.executeCommand("extension.initTimer");
 		seconds = 0;
-		fs.writeFileSync(vscode.workspace.rootPath + filePath, JSON.stringify({
+		fs.writeFileSync(context.extensionPath + filePath, JSON.stringify({
 			currentSession: 0,
 			prevSession: 0,
 			totalTime: 0,
@@ -205,10 +210,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 function initFile(filePath:any,projectName:any,context:any,fullCurrentDate:String){
 	try {
-		if (fs.existsSync(vscode.workspace.rootPath + filePath)) {
-			let jsonTime = JSON.parse(fs.readFileSync(vscode.workspace.rootPath + filePath, 'utf8'));
+		if (fs.existsSync(context.extensionPath + filePath)) {
+			let jsonTime = JSON.parse(fs.readFileSync(context.extensionPath + filePath, 'utf8'));
 			if (jsonTime.currentSession > 0) {
-				fs.writeFileSync(vscode.workspace.rootPath + filePath, JSON.stringify({
+				fs.writeFileSync(context.extensionPath + filePath, JSON.stringify({
 					currentSession: 0,
 					prevSession: jsonTime.currentSession,
 					totalTime: jsonTime.totalTime + jsonTime.prevSession,
@@ -217,7 +222,7 @@ function initFile(filePath:any,projectName:any,context:any,fullCurrentDate:Strin
 				}));
 			}
 		} else {
-			fs.writeFileSync(vscode.workspace.rootPath + filePath, JSON.stringify({
+			fs.writeFileSync(context.extensionPath + filePath, JSON.stringify({
 				currentSession: 0,
 				prevSession: 0,
 				totalTime: 0,
@@ -248,7 +253,7 @@ function initFileL(filePathL:any,projectName:any,context:any,fullCurrentDate:Str
 
 function saveFile(filePath:any,projectName:any,context:any,seconds:any,jsonTime:any,languageTime:any){
 	try{
-		fs.writeFileSync(vscode.workspace.rootPath + filePath, JSON.stringify({
+		fs.writeFileSync(context.extensionPath + filePath, JSON.stringify({
 			currentSession: seconds,
 			prevSession: jsonTime.prevSession,
 			totalTime: jsonTime.totalTime + 1,
@@ -383,9 +388,23 @@ function getWebviewContent(jsonTime: any, timeProjects: any, canvasJS: any) {
   </html>`;
 }
 
-function random_rgba() {
-    var o = Math.round, r = Math.random, s = 255;
-    return 'rgba(' + o(r()*s) + ',' + o(r()*s) + ',' + o(r()*s) + ',' + r().toFixed(1) + ')';
+function random_rgba(lang:string) {
+	var color = colors[lang];
+	if(!colors[lang]){
+		var o = Math.round, r = Math.random, s = 255;
+		color = 'rgba(' + o(r()*s) + ',' + o(r()*s) + ',' + o(r()*s) + ',' + r().toFixed(1) + ')';
+		colors[lang] = color;
+		addColor();
+	}
+	return color;
+}
+
+function addColor(){
+	try{	
+		var extension = vscode.extensions.getExtension('FabricioRojas.vstimetracker');
+		fs.writeFileSync(path.normalize(extension.extensionPath)+'/src/colors.json', JSON.stringify(colors));
+		colors = JSON.parse(fs.readFileSync(path.normalize(extension.extensionPath)+'/src/colors.json', 'utf8'));
+	}catch(err){}
 }
 
 function pieData(time:any){
@@ -398,7 +417,7 @@ function pieData(time:any){
 		data.push(time[i]);
 		labels.push(i);
 		labelsValue.push(secondsToReadableTime(time[i]));
-		backgroundColor.push(random_rgba());
+		backgroundColor.push(random_rgba(i));
 		borderColor.push('transparent');
 	}
 	let dataPoints = {
@@ -434,7 +453,7 @@ function pieDataL(dates:any){
 		data.push(globalLangTime[x]);
 		labels.push(x);
 		labelsValue.push(secondsToReadableTime(globalLangTime[x]));
-		backgroundColor.push(random_rgba());
+		backgroundColor.push(random_rgba(x));
 		borderColor.push('transparent');
 	}
 
@@ -481,7 +500,7 @@ class VSTimeTrckerSerializer implements vscode.WebviewPanelSerializer {
 		// 	path.join(vscode.extensionPath, 'src', 'canvasjs.min.js')
 		//   );
 		// const canvasJS = onDiskPath.with({ scheme: 'vscode-resource' });
-		// let jsonTime = JSON.parse(fs.readFileSync(vscode.workspace.rootPath + "/timeTraked.json", 'utf8'));
+		// let jsonTime = JSON.parse(fs.readFileSync(context.extensionPath + "/timeTraked.json", 'utf8'));
 		// webviewPanel.webview.html = getWebviewContent(jsonTime, "",canvasJS);
 	}
 }
