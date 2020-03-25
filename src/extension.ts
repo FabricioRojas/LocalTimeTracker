@@ -401,7 +401,7 @@ function random_rgba(lang:string) {
 
 function addColor(){
 	try{	
-		var extension = vscode.extensions.getExtension('FabricioRojas.vstimetracker');
+		var extension:any = vscode.extensions.getExtension('FabricioRojas.vstimetracker');
 		fs.writeFileSync(path.normalize(extension.extensionPath)+'/src/colors.json', JSON.stringify(colors));
 		colors = JSON.parse(fs.readFileSync(path.normalize(extension.extensionPath)+'/src/colors.json', 'utf8'));
 	}catch(err){}
