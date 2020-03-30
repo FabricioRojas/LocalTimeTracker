@@ -6,7 +6,7 @@
 	"author": {
 		"name": "Fabricio Rojas"
 	},
-	"version": "0.0.26",
+	"version": "1.0.0",
 	"engines": {
 		"vscode": "^1.35.0"
 	},
@@ -16,7 +16,7 @@
 	],
 	"icon": "localtimetracker_icon.png",
 	"galleryBanner": {
-		"color": "#C80000",
+		"color": "#232323",
 		"theme": "dark"
 	},
 	"activationEvents": [
