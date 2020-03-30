@@ -39,7 +39,6 @@ export function activate(context: vscode.ExtensionContext) {
 	let yyyy = currentDate.getFullYear();
 	let fullCurrentDate = dd+"-"+mm+"-"+yyyy;
 	colors = JSON.parse(fs.readFileSync(colorPath, 'utf8'));
-	// token gc5xbfyqqwa5utw44ld32rglv5boyktmeohz4xwmylp5eofjswua
 
 	const timer = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
 	initItem(timer, "LTT $(clock)", "View stats", "extension.getTime");

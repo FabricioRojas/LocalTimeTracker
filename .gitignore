@@ -4,3 +4,4 @@ node_modules
 *.vsix
 timeTraked.json
 timeTrakedL.json
+token.txt
