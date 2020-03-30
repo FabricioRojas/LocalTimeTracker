@@ -3,6 +3,7 @@ import * as path from 'path';
 let fs = require("fs");
 let currentLang = '';
 let colors:any;
+let gWindowState:boolean = true;
 
 export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.executeCommand("extension.initTimer");
@@ -15,7 +16,8 @@ export function activate(context: vscode.ExtensionContext) {
 		context.subscriptions
 	);
 
-	vscode.window.onDidChangeWindowState((windowState: any) => {
+	vscode.window.onDidChangeWindowState((windowState: vscode.WindowState) => {
+		gWindowState = windowState.focused
 		vscode.commands.executeCommand("extension.updateStatusTimer");
 	},
 		null,
@@ -28,7 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let filePath = path.join(context.extensionPath, 'timeTraked.json');
 	let filePathL = path.join(context.extensionPath, 'timeTrakedL.json');
-	let colorPath = path.join(context.extensionPath, '/colors.json');
+	let colorPath = path.join(context.extensionPath, 'colors.json');
 	let projectName = vscode.workspace.name;
 	let currentPanel: vscode.WebviewPanel | undefined = undefined;
 	let timerInterval: NodeJS.Timeout;
@@ -105,12 +107,19 @@ export function activate(context: vscode.ExtensionContext) {
 			? vscode.window.activeTextEditor.viewColumn
 			: undefined;
 
+			vscode.window.onDidChangeWindowState((windowState: vscode.WindowState) => {
+				if(currentPanel) currentPanel.dispose();				
+			},
+				null,
+				context.subscriptions
+			);
+
 		if (currentPanel) {
 			currentPanel.reveal(columnToShowIn);
 		} else {
 			const panel = vscode.window.createWebviewPanel(
 				'LTTMainPage',
-				'VSTimeTracker',
+				'Local Time Tracker Stats',
 				vscode.ViewColumn.One,
 				{
 					enableScripts: true,
@@ -129,12 +138,11 @@ export function activate(context: vscode.ExtensionContext) {
 				panel.webview.html = getWebviewContent(jsonTime, timeProjects, canvasJS);
 			};
 			updateWebview();
-		    //const interval = setInterval(updateWebview, 1000);
+		    // const interval = setInterval(updateWebview, 1000);
 
 			currentPanel.onDidDispose(() => {
 				currentPanel = undefined;
 				// clearInterval(interval);
-				console.log("BYE!");
 			},
 				null,
 				context.subscriptions
@@ -160,13 +168,14 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	let pauseTimer = vscode.commands.registerCommand('extension.updateStatusTimer', () => {
-		if (pause.text === "ll") {
+		
+		if (!gWindowState && pause.text === "ll") {
 			vscode.window.showInformationMessage('Timer paused!');
 			pause.text = "$(triangle-right)";
 			clearInterval(timerInterval);
 			let jsonTime = JSON.parse(fs.readFileSync(filePath, 'utf8'));
 			seconds = jsonTime.currentSession + 1;
-		} else {
+		} else if (pause.text != "ll"){
 			pause.text = "ll";
 			vscode.commands.executeCommand("extension.initTimer");
 			timer.text = "LTT $(clock) " + secondsToReadableTime(seconds);
