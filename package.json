@@ -1,16 +1,24 @@
 {
-	"name": "vstimetracker",
-	"displayName": "vsTimeTracker",
-	"description": "",
+	"name": "localtimetracker",
+	"displayName": "Local Time Tracker",
+	"description": "Log the time you are coding!",
 	"publisher": "FabricioRojas",
-	"repository": "https://github.com/FabricioRojas/vsTimeTracker",
-	"version": "0.0.2",
+	"author": {
+		"name": "Fabricio Rojas"
+	},
+	"version": "0.0.26",
 	"engines": {
 		"vscode": "^1.35.0"
 	},
 	"categories": [
-		"Other"
+		"Other",
+		"Programming Languages"
 	],
+	"icon": "localtimetracker_icon.png",
+	"galleryBanner": {
+		"color": "#C80000",
+		"theme": "dark"
+	},
 	"activationEvents": [
 		"*"
 	],
@@ -19,19 +27,19 @@
 		"commands": [
 			{
 				"command": "extension.getTime",
-				"title": "View stats"
+				"title": "LTT: View stats"
 			},
 			{
 				"command": "extension.initTimer",
-				"title": "Init Timer"
+				"title": "LTT: Init Timer"
 			},
 			{
 				"command": "extension.updateStatusTimer",
-				"title": "Pause/Start timer"
+				"title": "LTT: Pause/Start timer"
 			},
 			{
 				"command": "extension.clearStatsRestartTimer",
-				"title": "Clear stats and restart the timer"
+				"title": "LTT: Clear stats and restart the timer"
 			}
 		]
 	},
@@ -49,7 +57,14 @@
 		"@types/node": "^10.12.21",
 		"@types/mocha": "^2.2.42"
 	},
-	"dependencies": {
-		"anychart": "^8.6.0"
-	}
+	"license": "SEE LICENSE IN LICENSE.txt",
+	"bugs": {
+		"url": "https://github.com/FabricioRojas/LocalTimeTracker/issues",
+		"email": "fabriciorojascuomo@gmail.com"
+	  },
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/FabricioRojas/LocalTimeTracker.git"
+	},
+	"homepage": "https://github.com/FabricioRojas/LocalTimeTracker/blob/master/README.md"
 }

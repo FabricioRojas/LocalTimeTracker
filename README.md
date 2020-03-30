@@ -1,28 +1,9 @@
-# vstimetracker README
-
-Logs the time you are coding! 
+# Local Time Tracker Extension
 
 ## Features
 
-Logs the time you code
+- Track the time you are codding on every language / file extension
 
-## Requirements
+- It only tracks the real time you keep codding not the time you spend on other apps
 
-Not requirements 
-
-## Extension Settings
-
-No settings
-
-## Known Issues
-
-No issues
-
-## Release Notes
-
-First release
-
-### 1.0.0
-
-Initial release of ...
-
+- You can check out the time spent on a chart
