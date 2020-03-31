@@ -1,6 +1,6 @@
 # Local Time Tracker Extension
 
-
+Is a simple VS Code extension to track the time you are coding
 
 ## Features
 
