@@ -6,7 +6,7 @@
 	"author": {
 		"name": "Fabricio Rojas"
 	},
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"engines": {
 		"vscode": "^1.35.0"
 	},
@@ -40,6 +40,10 @@
 			{
 				"command": "extension.clearStatsRestartTimer",
 				"title": "LTT: Clear stats and restart the timer"
+			},
+			{
+				"command": "extension.resetLanguagesColors",
+				"title": "LTT: Reset languagues colors"
 			}
 		]
 	},

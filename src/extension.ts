@@ -101,7 +101,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let getTime = vscode.commands.registerCommand('extension.getTime', () => {
 		// let jsonTime = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-
 		colors = JSON.parse(fs.readFileSync(colorPath, 'utf8'));
 		const columnToShowIn = vscode.window.activeTextEditor
 			? vscode.window.activeTextEditor.viewColumn
@@ -168,7 +167,6 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	let pauseTimer = vscode.commands.registerCommand('extension.updateStatusTimer', () => {
-		
 		if (!gWindowState && pause.text === "ll") {
 			vscode.window.showInformationMessage('Timer paused!');
 			pause.text = "$(triangle-right)";
@@ -211,10 +209,15 @@ export function activate(context: vscode.ExtensionContext) {
 		}));
 	});
 
+	let resetColors = vscode.commands.registerCommand('extension.resetLanguagesColors', () => {
+		fs.writeFileSync(colorPath, JSON.stringify({}));
+	});
+
 	context.subscriptions.push(initTimer);
 	context.subscriptions.push(getTime);
 	context.subscriptions.push(pauseTimer);
 	context.subscriptions.push(clearStats);
+	context.subscriptions.push(resetColors);
 }
 
 function initFile(filePath:any,projectName:any,context:any,fullCurrentDate:String){
