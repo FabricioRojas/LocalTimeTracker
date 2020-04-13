@@ -11,13 +11,15 @@ export function activate(context: vscode.ExtensionContext) {
 
 	vscode.window.onDidChangeActiveTextEditor((textEditor: any) => {
 		currentLang = textEditor._documentData._languageId;
+		projectName = vscode.workspace.name;
 	},
 		null,
 		context.subscriptions
 	);
 
 	vscode.window.onDidChangeWindowState((windowState: vscode.WindowState) => {
-		gWindowState = windowState.focused
+		gWindowState = windowState.focused;
+		projectName = vscode.workspace.name;
 		vscode.commands.executeCommand("extension.updateStatusTimer");
 	},
 		null,
@@ -314,27 +316,29 @@ function getWebviewContent(jsonTime: any, timeProjects: any, canvasJS: any) {
 	  <meta charset="UTF-8">
 	  <!--<meta http-equiv="Content-Security-Policy" content="default-src 'none';">-->
 	  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	  <title>`+ jsonTime.projectName + `</title>
+	  <title>${jsonTime.projectName}</title>
   </head>
   <body>
-	  	<h1>Current session time: `+ secondsToReadableTime(jsonTime.currentSession) + `</h1>
-	  	<h1>Previous session time: `+ secondsToReadableTime(jsonTime.prevSession) + `</h1>
+	  	<h1>Current session time: ${secondsToReadableTime(jsonTime.currentSession)}</h1>
+	  	<h1>Previous session time: ${secondsToReadableTime(jsonTime.prevSession)}</h1>
 	  	<ul id="lang-list" style="display:none;">
-		  	`+ languagesList(jsonTime.languageTime) + `
+		  	${languagesList(jsonTime.languageTime)}
 	  	</ul>
 	  	<!--<div id="chartContainer" style="height: 370px; width: 100%;"></div>-->
 	  	<div class="canvas-div">
-	  		<h2>Current project total time: `+ secondsToReadableTime(jsonTime.totalTime) + `</h1>
+	  		<h2>${jsonTime.projectName ? jsonTime.projectName : "Current project"} total time: ${secondsToReadableTime(jsonTime.totalTime)}</h1>
 			<canvas id="languagesChart"></canvas>
 		</div>
 		<div class="canvas-div">
-			<h2>Total time: `+ getTotalTime(timeProjects.dates) + `</h1>
+			<h2>Total time: ${getTotalTime(timeProjects.dates)}</h1>
 		  	<canvas id="projectsChart"></canvas>
-	  	</div>	  
+		  </div>
+		  
+		<h1>Time by project: ${getTimeByProject(timeProjects.dates)}</h1>
 		<script src="${canvasJS}"></script>
 		<script>
-		var dataPoints = `+ pieData(jsonTime.languageTime)+ `;
-		var dataPointsL = `+ pieDataL(timeProjects.dates)+ `;
+		var dataPoints = ${pieData(jsonTime.languageTime)};
+		var dataPointsL = ${pieDataL(timeProjects.dates)};
 		window.onload = function() {
 			var ctx = document.getElementById('languagesChart').getContext('2d');
 			var chart = new Chart(ctx, {
@@ -494,6 +498,27 @@ function getTotalTime(timeProjects:any){
 		}
 	}
 	return secondsToReadableTime(totalTime);
+}
+function getTimeByProject(timeProjects:any){
+	let totalTime = 0;
+	let html = '';
+	let lis = '';
+	for(var j in timeProjects){
+		let currentLog = timeProjects[j];
+		if(!currentLog.projectName || currentLog.projectName == 'undefined') continue;
+		html += `<div><p>${currentLog.projectName}: `;
+		for(var i in currentLog.languageTime){
+			let time = currentLog.languageTime[i];
+			totalTime+=time;
+			lis+= `<li>${i.replace(i[0], i[0].toUpperCase())}: ${secondsToReadableTime(time)}</li>`;
+		}
+		html+= `${secondsToReadableTime(totalTime)}</p><ul>`;
+		html+= '</p><ul>';
+		html+= lis;
+		html+= '</ul></div>';
+		lis = '';
+	}
+	return html;
 }
 
 export function deactivate() {
