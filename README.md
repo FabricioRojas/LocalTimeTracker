@@ -31,4 +31,4 @@ Is a simple VS Code extension to track the time you are coding
 
 ## Known issues
 
-- [ ] The Pause/Start timer command doesn't do anything
+- [x] The Pause/Start timer command doesn't do anything
