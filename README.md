@@ -2,6 +2,7 @@
 
 Is a simple VS Code extension to track the time you are coding
 
+
 ## Features
 
 - No account needed
@@ -25,3 +26,9 @@ Is a simple VS Code extension to track the time you are coding
 - [ ] Improve **Stats view** design
 
 - [ ] Real time refresh on **Stats view**
+
+
+
+## Known issues
+
+- [ ] The Pause/Start timer command doesn't do anything

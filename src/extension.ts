@@ -20,7 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.window.onDidChangeWindowState((windowState: vscode.WindowState) => {
 		gWindowState = windowState.focused;
 		projectName = vscode.workspace.name;
-		vscode.commands.executeCommand("extension.updateStatusTimer");
+		vscode.commands.executeCommand("extension.updateStatusTimerAuto");
 	},
 		null,
 		context.subscriptions
@@ -169,6 +169,28 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	let pauseTimer = vscode.commands.registerCommand('extension.updateStatusTimer', () => {
+		if (pause.text === "ll") {
+			vscode.window.showInformationMessage('Timer paused!');
+			pause.text = "$(triangle-right)";
+			clearInterval(timerInterval);
+			let jsonTime = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+			seconds = jsonTime.currentSession + 1;
+		} else{
+			pause.text = "ll";
+			vscode.commands.executeCommand("extension.initTimer");
+			timer.text = "LTT $(clock) " + secondsToReadableTime(seconds);
+			let jsonTime = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+			fs.writeFileSync(filePath, JSON.stringify({
+				currentSession: seconds,
+				prevSession: jsonTime.prevSession,
+				totalTime: jsonTime.totalTime + 1,
+				projectName: projectName,
+				languageTime: jsonTime.languageTime
+			}));
+			seconds++;
+		}
+	});
+	let pauseTimerAuto = vscode.commands.registerCommand('extension.updateStatusTimerAuto', () => {
 		if (!gWindowState && pause.text === "ll") {
 			vscode.window.showInformationMessage('Timer paused!');
 			pause.text = "$(triangle-right)";
@@ -218,6 +240,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(initTimer);
 	context.subscriptions.push(getTime);
 	context.subscriptions.push(pauseTimer);
+	context.subscriptions.push(pauseTimerAuto);
 	context.subscriptions.push(clearStats);
 	context.subscriptions.push(resetColors);
 }
