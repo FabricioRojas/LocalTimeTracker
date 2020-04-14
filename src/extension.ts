@@ -317,84 +317,133 @@ function getWebviewContent(jsonTime: any, timeProjects: any, canvasJS: any) {
 	  <!--<meta http-equiv="Content-Security-Policy" content="default-src 'none';">-->
 	  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 	  <title>${jsonTime.projectName}</title>
+	  <style>
+			hr { 
+				display: block;
+				margin-top: 2.5em;
+				margin-bottom: 0.5em;
+				margin-left: auto;
+				margin-right: auto;
+				border-style: inset;
+				border-width: 1px;
+			}
+			.header-div{
+				display: flex;
+			}
+			.header-div h2{
+				width: 50%;
+			}
+			#lang-list{
+				display:none;
+			}
+			span{
+				font-weight: 100;
+			}
+			#chartContainer{
+				height: 300px; 
+				max-height: 300px; 
+				width: 100%;
+			}
+			.ul-languages{
+				list-style: none;
+			}
+			.ul-languages div{
+				width:13px; 
+				height:13px; 
+				display: inline-block; 
+				margin: 0 5px 0 0;
+			}
+			.ul-languages h3{
+				display: contents;
+			}
+		</style>
   </head>
   <body>
-	  	<h1>Current session time: ${secondsToReadableTime(jsonTime.currentSession)}</h1>
-	  	<h1>Previous session time: ${secondsToReadableTime(jsonTime.prevSession)}</h1>
-	  	<ul id="lang-list" style="display:none;">
+  		<h1>Local Time Tracker Stats:</h1>
+		<div class="header-div">
+	  		<h2>Current session time: <span>${secondsToReadableTime(jsonTime.currentSession)}</span></h2>
+		  	<h2>Previous session time: <span>${secondsToReadableTime(jsonTime.prevSession)}</span></h2>
+		</div>
+
+		<hr>
+	  	<ul id="lang-list">
 		  	${languagesList(jsonTime.languageTime)}
 	  	</ul>
-	  	<!--<div id="chartContainer" style="height: 370px; width: 100%;"></div>-->
-	  	<div class="canvas-div">
-	  		<h2>${jsonTime.projectName ? jsonTime.projectName : "Current project"} total time: ${secondsToReadableTime(jsonTime.totalTime)}</h1>
-			<canvas id="languagesChart"></canvas>
+	  	<div id="chartContainer">
+			<div class="canvas-div">
+				<h2>${jsonTime.projectName ? jsonTime.projectName : "Current project"} total time: <span>${secondsToReadableTime(jsonTime.totalTime)}</span></h2>
+				<canvas id="languagesChart"></canvas>
+			</div>
+			<div class="canvas-div">
+				<h2>Total time: <span>${getTotalTime(timeProjects.dates)}</span></h2>
+				<canvas id="projectsChart"></canvas>
+			</div>
 		</div>
-		<div class="canvas-div">
-			<h2>Total time: ${getTotalTime(timeProjects.dates)}</h1>
-		  	<canvas id="projectsChart"></canvas>
-		  </div>
-		  
-		<h1>Time by project: ${getTimeByProject(timeProjects.dates)}</h1>
+
+		<!--<hr>-->
+		<h1>Time by project:</h1>
+		${getTimeByProject(timeProjects.dates)}
+
 		<script src="${canvasJS}"></script>
 		<script>
-		var dataPoints = ${pieData(jsonTime.languageTime)};
-		var dataPointsL = ${pieDataL(timeProjects.dates)};
-		window.onload = function() {
-			var ctx = document.getElementById('languagesChart').getContext('2d');
-			var chart = new Chart(ctx, {
-				type: 'pie',
-				data: dataPoints,
-				options: {
-					tooltips: {
-						callbacks: {
-							label: function(tooltipItem, data) {
-								var label = data.labels[tooltipItem.index] || '';
-								if (label) {
-									label = label.replace(label[0], label[0].toUpperCase())
-									//label += ': ';
+			var dataPoints = ${pieData(jsonTime.languageTime)};
+			var dataPointsL = ${pieDataL(timeProjects.dates)};
+			window.onload = function() {
+				var ctx = document.getElementById('languagesChart').getContext('2d');
+				var chart = new Chart(ctx, {
+					type: 'pie',
+					data: dataPoints,
+					options: {
+						tooltips: {
+							callbacks: {
+								label: function(tooltipItem, data) {
+									var label = data.labels[tooltipItem.index] || '';
+									if (label) {
+										label = label.replace(label[0], label[0].toUpperCase())
+										//label += ': ';
+									}
+									//label += data.labelsValue[tooltipItem.index];
+									return label;
 								}
-								//label += data.labelsValue[tooltipItem.index];
-								return label;
 							}
-						}
-					},
-				}
-			});
-			chart.canvas.parentNode.style.width = '49%';
-			chart.canvas.parentNode.style.float = 'left';
-			var ctxL = document.getElementById('projectsChart').getContext('2d');
-			var chartL = new Chart(ctxL, {
-				type: 'pie',
-				data: dataPointsL,
-				options: {
-					tooltips: {
-						callbacks: {
-							label: function(tooltipItem, data) {
-								var label = data.labels[tooltipItem.index] || '';
-								if (label) {
-									label = label.replace(label[0], label[0].toUpperCase())
-									//label += ': ';
+						},
+					}
+				});
+				chart.canvas.parentNode.style.width = '49%';
+				chart.canvas.parentNode.style.float = 'left';
+				var ctxL = document.getElementById('projectsChart').getContext('2d');
+				var chartL = new Chart(ctxL, {
+					type: 'pie',
+					data: dataPointsL,
+					options: {
+						tooltips: {
+							callbacks: {
+								label: function(tooltipItem, data) {
+									var label = data.labels[tooltipItem.index] || '';
+									if (label) {
+										label = label.replace(label[0], label[0].toUpperCase())
+										//label += ': ';
+									}
+									//label += data.labelsValue[tooltipItem.index];
+									return label;
 								}
-								//label += data.labelsValue[tooltipItem.index];
-								return label;
 							}
 						}
 					}
+				});
+				chartL.canvas.parentNode.style.width = '49%';
+				chartL.canvas.parentNode.style.float = 'right';
+			}
+			window.addEventListener('message', event => {
+				const message = event.data;
+				switch (message.command) {
+					case 'refactor':
+						count = Math.ceil(count * 0.5);
+						counter.textContent = count;
+						break;
 				}
 			});
-			chartL.canvas.parentNode.style.width = '49%';
-			chartL.canvas.parentNode.style.float = 'right';
-		}
-		window.addEventListener('message', event => {
-            const message = event.data;
-            switch (message.command) {
-                case 'refactor':
-                    count = Math.ceil(count * 0.5);
-                    counter.textContent = count;
-                    break;
-            }
-        });
-    </script>
+		</script>		
   </body>
   </html>`;
 }
@@ -506,14 +555,13 @@ function getTimeByProject(timeProjects:any){
 	for(var j in timeProjects){
 		let currentLog = timeProjects[j];
 		if(!currentLog.projectName || currentLog.projectName == 'undefined') continue;
-		html += `<div><p>${currentLog.projectName}: `;
+		html += `<div><h2>${currentLog.projectName}: `;
 		for(var i in currentLog.languageTime){
 			let time = currentLog.languageTime[i];
 			totalTime+=time;
-			lis+= `<li>${i.replace(i[0], i[0].toUpperCase())}: ${secondsToReadableTime(time)}</li>`;
+			lis+= `<li><div style="background-color:${random_rgba(i)};"></div><h3>${i.replace(i[0], i[0].toUpperCase())}: <span>${secondsToReadableTime(time)}</span></h3></li>`;
 		}
-		html+= `${secondsToReadableTime(totalTime)}</p><ul>`;
-		html+= '</p><ul>';
+		html+= `<span>${secondsToReadableTime(totalTime)}</span></h2><ul class="ul-languages">`;
 		html+= lis;
 		html+= '</ul></div>';
 		lis = '';
