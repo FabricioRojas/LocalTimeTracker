@@ -20,8 +20,8 @@ Is a simple VS Code extension to track the time you are coding
 
 ## Future features
 
-- View stats by project / workspace / folder
+- [x] View stats by project / workspace / folder
 
-- Improve **Stats view** design
+- [ ] Improve **Stats view** design
 
-- Real time refresh on **Stats view**
+- [ ] Real time refresh on **Stats view**
