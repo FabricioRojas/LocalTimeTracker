@@ -72,6 +72,7 @@
 	},
 	"homepage": "https://github.com/FabricioRojas/LocalTimeTracker/blob/master/README.md",
 	"dependencies": {
-		"https-proxy-agent": "^2.2.3"
+		"https-proxy-agent": "^2.2.3",
+		"minimist": "^0.2.1"
 	}
 }
