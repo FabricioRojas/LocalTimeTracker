@@ -65,10 +65,13 @@
 	"bugs": {
 		"url": "https://github.com/FabricioRojas/LocalTimeTracker/issues",
 		"email": "fabriciorojascuomo@gmail.com"
-	  },
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/FabricioRojas/LocalTimeTracker.git"
 	},
-	"homepage": "https://github.com/FabricioRojas/LocalTimeTracker/blob/master/README.md"
+	"homepage": "https://github.com/FabricioRojas/LocalTimeTracker/blob/master/README.md",
+	"dependencies": {
+		"https-proxy-agent": "^2.2.3"
+	}
 }

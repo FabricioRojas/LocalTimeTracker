@@ -588,12 +588,13 @@ function getTimeByProject(timeProjects:any){
 		html+= lis;
 		html+= '</ul></div>';
 		lis = '';
+		totalTime = 0;
 	}
 	return html;
 }
 
 export function deactivate() {
-	console.log("deactivate");
+	// console.log("deactivate");
 }
 
 class VSTimeTrckerSerializer implements vscode.WebviewPanelSerializer {
