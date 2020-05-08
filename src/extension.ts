@@ -695,7 +695,7 @@ function getTimeByProject(timeProjects: any, jsonTime: any) {
 }
 
 export function deactivate() {
-	console.log("deactivate");
+	// console.log("deactivate");
 }
 
 class VSTimeTrckerSerializer implements vscode.WebviewPanelSerializer {
