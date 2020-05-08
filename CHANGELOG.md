@@ -1,5 +1,20 @@
 # Change Log
 
+# 1.0.6
+
+- Solved minor issue related with "Time by project" section
+
+# 1.0.5
+
+- Improved **Stats view** overall appearance
+
+# 1.0.4
+
+- Fixed minor errors
+
+# 1.0.3
+
+- Fixed issue #1
 
 # 1.0.2
 
